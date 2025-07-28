@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cartesian Graph Plot</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      background: white;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="graph" width="600" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const origin = { x: width / 2, y: height / 2 };
+    const scale = 2; // 1 unit = 2 pixels
+
+    function drawAxes() {
+      // Quadrant colors
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+      ctx.fillRect(origin.x, 0, width / 2, height / 2); // Q1
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+      ctx.fillRect(0, 0, width / 2, height / 2); // Q2
+      ctx.fillStyle = 'rgba(0, 0, 255, 0.1)';
+      ctx.fillRect(0, origin.y, width / 2, height / 2); // Q3
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
+      ctx.fillRect(origin.x, origin.y, width / 2, height / 2); // Q4
+
+      // X and Y axes
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, origin.y);
+      ctx.lineTo(width, origin.y);
+      ctx.moveTo(origin.x, 0);
+      ctx.lineTo(origin.x, height);
+      ctx.stroke();
+
+      // Label the axis extremes
+      ctx.fillStyle = 'black';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('-100', 5, origin.y - 5);
+      ctx.fillText('100', width - 35, origin.y - 5);
+      ctx.fillText('100', origin.x + 5, 15);
+      ctx.fillText('-100', origin.x + 5, height - 5);
+    }
+
+    function drawPoints(points) {
+      ctx.fillStyle = 'black';
+      points.forEach(pt => {
+        const canvasX = origin.x + pt.X * scale;
+        const canvasY = origin.y - pt.Y * scale; // Y is inverted on canvas
+        ctx.beginPath();
+        ctx.arc(canvasX, canvasY, 3, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Draw label
+        ctx.font = '12px sans-serif';
+        ctx.fillText(pt.name, canvasX + 5, canvasY - 5);
+      });
+    }
+
+    async function fetchDataAndDraw() {
+      try {
+        const res = await fetch('http://localhost:5322/all');
+        const data = await res.json();
+        drawAxes();
+        drawPoints(data);
+      } catch (e) {
+        console.error('Failed to fetch or draw data:', e);
+      }
+    }
+
+    fetchDataAndDraw();
+  </script>
+</body>
+</html>
+
