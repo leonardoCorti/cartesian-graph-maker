@@ -1,9 +1,12 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
-#[command(name = "synonymous_plotter")]
-#[command(about = "A program to create a graph from a database synonymous", long_about = None)]
+#[command(name = "cartesian_graph_maker")]
+#[command(about = "A program to create a cartesian graph from a database", long_about = None)]
 struct Cli {
+    /// database location
+    #[arg(short, long, global = true, default_value = "./data.db")]
+    db: String,
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -11,9 +14,23 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// server
-    Serve {},
+    Serve {
+        #[arg(long, default_value = "0.0.0.0")]
+        address: String,
+        #[arg(long, default_value = "8091")]
+        port: String,
+    },
     /// graph operations
-    Graph {},
+    Graph {
+        #[arg(value_enum)]
+        format: ImageFormat,
+        #[arg(short, long)]
+        x_attribute: Option<String>,
+        #[arg(short, long)]
+        y_attribute: Option<String>,
+        #[arg(short, long, default_value = "1080")]
+        height: usize,
+    },
     /// database operations
     Db {
         #[command(subcommand)]
@@ -21,20 +38,40 @@ enum Commands {
     },
 }
 
+#[derive(Debug, Clone, ValueEnum)]
+enum ImageFormat {
+    Png,
+    Svg,
+}
+
 #[derive(Subcommand)]
 enum DbCommand {
     Populate {},
     Query {},
+    Create {},
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    match &cli.command.unwrap_or(Commands::Serve {}) {
-        Commands::Serve {} => {
+    println!("{}", cli.db);
+
+    match &cli.command.unwrap_or(Commands::Serve {
+        address: "0.0.0.0".to_string(),
+        port: "8091".to_string(),
+    }) {
+        Commands::Serve {
+            address: _,
+            port: _,
+        } => {
             println!("server");
         }
-        Commands::Graph {} => {
+        Commands::Graph {
+            format: _,
+            x_attribute: _,
+            y_attribute: _,
+            height: _,
+        } => {
             println!("graph operations");
         }
         Commands::Db { action: _ } => {
